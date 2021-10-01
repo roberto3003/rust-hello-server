@@ -1,3 +1,6 @@
+extern crate hello_server;
+use hello_server::ThreadPool;
+
 use std::io::Read;
 use std::io::Write;
 use std::net::TcpListener;
@@ -7,13 +10,14 @@ use std::thread;
 use std::time::Duration;
  fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let pool = ThreadPool::new(4);
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
-        handle_connection(stream);
-    }
-
+        pool.execute(|| {
+            handle_connection(stream);
+        });
 }
 
 fn handle_connection (mut stream: TcpStream) {
@@ -45,3 +49,4 @@ fn handle_connection (mut stream: TcpStream) {
         stream.write(response.as_bytes()).unwrap();
         stream.flush().unwrap();
     }
+ }
